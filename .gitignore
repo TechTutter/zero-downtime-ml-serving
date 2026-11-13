@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+app/model/*.joblib
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*.auto.tfvars
+
+# Secrets never live here
+*.json.key
+credentials*.json
+.env
+.env.*
+
+# Local tooling
+.kube/
+k6-results/
+.DS_Store
+
+# Local agent notes
+CLAUDE.local.md
