@@ -1,0 +1,37 @@
+[project]
+name = "model-server"
+version = "1.0.0"
+description = "Iris classifier behind FastAPI, built to be rolled out progressively."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi==0.165.0",
+    "uvicorn==0.54.0",
+    "scikit-learn==1.9.1",
+    "joblib==1.6.0",
+    "prometheus-client==0.26.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.2.0",
+    "httpx==0.28.1",
+    "ruff==0.17.6",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "SIM"]
+ignore = ["S311"] # random is used for fault injection, not crypto
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
