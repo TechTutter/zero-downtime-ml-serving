@@ -14,11 +14,13 @@ RUN .venv/bin/python train.py /app/model
 # ---- runtime ----------------------------------------------------------------
 FROM python:3.13.18-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
 ARG GIT_SHA=unknown
+ARG APP_VERSION=dev
 ENV PATH=/app/.venv/bin:$PATH \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MODEL_DIR=/app/model \
-    GIT_SHA=$GIT_SHA
+    GIT_SHA=$GIT_SHA \
+    APP_VERSION=$APP_VERSION
 RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app
 WORKDIR /app
 COPY --from=build /app/.venv .venv
