@@ -1,0 +1,6 @@
+directory: [.]
+framework: [terraform, dockerfile, github_actions]
+quiet: true
+compact: true
+# Each skip is a deliberate trade-off, explained in the linked resource or ADR.
+skip-check: []
