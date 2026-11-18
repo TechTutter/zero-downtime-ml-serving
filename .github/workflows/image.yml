@@ -1,0 +1,94 @@
+name: image
+
+# PR: build, scan, drain test, local promotion check.
+# Tag vX.Y.Z: the same, then push to GHCR by digest, sign, and hand the digest to deploy.
+on:
+  pull_request:
+    paths: [app/**, tools/**, tests/load/**, .github/workflows/image.yml, .github/workflows/deploy.yml]
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write # push to GHCR on tags
+      id-token: write # cosign keyless signing
+    services:
+      registry-a:
+        image: registry:3.0.0@sha256:6c5666b861f3505b116bb9aa9b25175e71210414bd010d92035ff64018f9457e
+        ports: ["5001:5000"]
+      registry-b:
+        image: registry:3.0.0@sha256:6c5666b861f3505b116bb9aa9b25175e71210414bd010d92035ff64018f9457e
+        ports: ["5002:5000"]
+    outputs:
+      image: ${{ steps.publish.outputs.image }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Metadata
+        id: meta
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then v=$GITHUB_REF_NAME; else v="pr-${{ github.event.number }}"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "repo=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      # The only build. Everything below scans, tests and ships this exact image.
+      - name: Build
+        run: tools/build.sh "${{ steps.meta.outputs.version }}"
+
+      - name: Scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.2
+          image-ref: model-server:${{ steps.meta.outputs.version }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Graceful drain test
+        run: tools/drain-test.sh "model-server:${{ steps.meta.outputs.version }}"
+
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        with:
+          cosign-release: v3.1.4
+      - uses: imjasonh/setup-crane@feee3b6bb0d4c68370f256a4502498c9227e5c6b # v0.7
+        with:
+          version: v0.22.1
+
+      # Fork PRs get no OIDC token, so keyless signing is skipped there.
+      - name: Promotion check (two local registries)
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        run: tools/promotion-check.sh "model-server:${{ steps.meta.outputs.version }}"
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Push and sign
+        id: publish
+        if: github.event_name == 'push'
+        env:
+          REPO: ${{ steps.meta.outputs.repo }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          docker tag "model-server:$VERSION" "$REPO:$VERSION"
+          docker push -q "$REPO:$VERSION"
+          ref="$REPO@$(crane digest "$REPO:$VERSION")"
+          cosign sign --yes "$ref"
+          tools/verify-signature.sh "$ref"
+          echo "image=$ref" >> "$GITHUB_OUTPUT"
+          echo "Published \`$ref\`" >> "$GITHUB_STEP_SUMMARY"
