@@ -31,3 +31,4 @@ k6-results/
 
 # Local agent notes
 CLAUDE.local.md
+bootstrap/terraform.tfvars
