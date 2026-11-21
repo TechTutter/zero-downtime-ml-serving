@@ -1,0 +1,82 @@
+name: infra
+
+# Pull requests: plan dev and prod with the read-only identity.
+# Merge to main: apply dev; prod waits for a manual approval on the "prod" environment.
+# prod is plan-only in this repository: the approval is never given.
+on:
+  pull_request:
+    paths: [envs/**, modules/**, .github/workflows/infra.yml, .github/actions/**]
+  push:
+    branches: [main]
+    paths: [envs/**, modules/**, .github/workflows/infra.yml, .github/actions/**]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infra-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  config:
+    runs-on: ubuntu-24.04
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        run: |
+          if [[ -z "${{ vars.GCP_PROJECT_DEV }}" ]]; then
+            echo "::notice title=infra skipped::GCP repository variables are not set (see README, Deploying to GCP)."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  plan:
+    needs: config
+    if: needs.config.outputs.enabled == 'true' && github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [dev, prod]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/gcp-auth
+        with:
+          environment: ${{ matrix.env }}
+          identity: plan
+          vars: ${{ toJSON(vars) }}
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.17.1"
+          terraform_wrapper: false
+      - name: Plan
+        working-directory: envs/${{ matrix.env }}
+        run: |
+          terraform init -input=false -backend-config="bucket=$TF_STATE_BUCKET"
+          terraform plan -input=false -no-color -lock-timeout=120s | tee plan.txt
+          { echo "### terraform plan: ${{ matrix.env }}"; echo '```'; tail -n 60 plan.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  apply-dev:
+    needs: config
+    if: needs.config.outputs.enabled == 'true' && github.event_name != 'pull_request'
+    uses: ./.github/workflows/_apply.yml
+    with:
+      environment: dev
+    permissions:
+      contents: read
+      id-token: write
+
+  apply-prod:
+    needs: apply-dev
+    uses: ./.github/workflows/_apply.yml
+    with:
+      environment: prod
+    permissions:
+      contents: read
+      id-token: write

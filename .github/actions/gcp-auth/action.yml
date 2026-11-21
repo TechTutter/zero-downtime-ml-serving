@@ -1,0 +1,40 @@
+name: gcp-auth
+description: >
+  Resolve an environment's GCP settings from repository variables and authenticate with
+  Workload Identity Federation (no keys). Exports GCP_PROJECT, GCP_REGION, TF_STATE_BUCKET.
+inputs:
+  environment:
+    description: dev or prod
+    required: true
+  identity:
+    description: plan, apply or deployer
+    required: true
+  vars:
+    description: toJSON(vars) from the caller
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Resolve settings
+      shell: bash
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
+        IDENTITY: ${{ inputs.identity }}
+        VARS: ${{ inputs.vars }}
+      run: |
+        e=${ENVIRONMENT^^}; i=${IDENTITY^^}
+        get() { jq -er --arg k "$1" '.[$k]' <<<"$VARS" || { echo "::error::repository variable $1 is not set"; exit 1; }; }
+        {
+          echo "GCP_PROJECT=$(get "GCP_PROJECT_$e")"
+          echo "GCP_REGION=$(get GCP_REGION)"
+          echo "GCP_WIF_PROVIDER=$(get "GCP_WIF_PROVIDER_$e")"
+          echo "GCP_SA=$(get "GCP_SA_${i}_$e")"
+          echo "TF_STATE_BUCKET=$(get "TF_STATE_BUCKET_$e")"
+        } >> "$GITHUB_ENV"
+    - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+      with:
+        workload_identity_provider: ${{ env.GCP_WIF_PROVIDER }}
+        service_account: ${{ env.GCP_SA }}
+    - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      with:
+        version: "592.0.0"

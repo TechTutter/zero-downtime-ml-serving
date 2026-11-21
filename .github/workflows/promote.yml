@@ -1,0 +1,64 @@
+name: promote
+
+# Promote a release from dev to prod by digest: the image that passed the dev canary is copied,
+# never rebuilt. Plan-only in this repository (prod is not applied), kept to show the path.
+on:
+  workflow_dispatch:
+    inputs:
+      version: { type: string, required: true, description: "release tag, e.g. v0.2.0" }
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+      image: ${{ steps.digest.outputs.image }}
+    steps:
+      - id: check
+        run: |
+          if [[ -z "${{ vars.GCP_PROJECT_PROD }}" ]]; then
+            echo "::notice title=promote skipped::prod repository variables are not set; prod is plan-only."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.check.outputs.enabled == 'true'
+      - uses: ./.github/actions/gcp-auth
+        if: steps.check.outputs.enabled == 'true'
+        with:
+          environment: dev
+          identity: deployer
+          vars: ${{ toJSON(vars) }}
+      - uses: imjasonh/setup-crane@feee3b6bb0d4c68370f256a4502498c9227e5c6b # v0.7
+        if: steps.check.outputs.enabled == 'true'
+        with:
+          version: v0.22.1
+      - name: Resolve the digest that ran in dev
+        id: digest
+        if: steps.check.outputs.enabled == 'true'
+        run: |
+          gcloud auth configure-docker "$GCP_REGION-docker.pkg.dev" --quiet
+          repo="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT/model-server"
+          echo "image=$repo@$(crane digest "$repo:${{ inputs.version }}")" >> "$GITHUB_OUTPUT"
+
+  deploy-prod:
+    needs: resolve
+    if: needs.resolve.outputs.enabled == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      image: ${{ needs.resolve.outputs.image }}
+      version: ${{ inputs.version }}
+      environment: prod
+      load: false # prod is private and serves real traffic
+    permissions:
+      contents: read
+      id-token: write
+      packages: read

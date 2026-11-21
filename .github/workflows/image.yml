@@ -92,3 +92,16 @@ jobs:
           tools/verify-signature.sh "$ref"
           echo "image=$ref" >> "$GITHUB_OUTPUT"
           echo "Published \`$ref\`" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-dev:
+    needs: build
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      image: ${{ needs.build.outputs.image }}
+      version: ${{ needs.build.outputs.version }}
+      environment: dev
+    permissions:
+      contents: read
+      id-token: write
+      packages: read

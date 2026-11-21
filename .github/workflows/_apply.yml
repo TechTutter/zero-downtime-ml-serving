@@ -1,0 +1,40 @@
+name: apply
+
+# Reusable: plan and apply one environment with the apply identity. The job runs inside the
+# GitHub environment, so its protection rules (prod: required reviewers) gate the apply and
+# the WIF binding only accepts tokens from that environment.
+on:
+  workflow_call:
+    inputs:
+      environment: { type: string, required: true }
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: tf-${{ inputs.environment }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/gcp-auth
+        with:
+          environment: ${{ inputs.environment }}
+          identity: apply
+          vars: ${{ toJSON(vars) }}
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.17.1"
+          terraform_wrapper: false
+      - name: Apply
+        working-directory: envs/${{ inputs.environment }}
+        run: |
+          terraform init -input=false -backend-config="bucket=$TF_STATE_BUCKET"
+          terraform plan -input=false -no-color -lock-timeout=120s -out=tfplan
+          terraform apply -input=false -no-color tfplan
