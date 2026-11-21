@@ -3,6 +3,10 @@
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+project := env("GCP_PROJECT", "zdml-demo-dev")
+region := env("GCP_REGION", "europe-west1")
+service := "model-server"
+
 # List all recipes
 default:
     @just --list --unsorted
@@ -61,3 +65,23 @@ gh-vars:
 [group('infra')]
 plan env="dev":
     terraform -chdir=envs/{{env}} init -backend-config="bucket=zdml-demo-{{env}}-tfstate" && terraform -chdir=envs/{{env}} plan
+
+# Deploy an image by digest as a no-traffic revision on Cloud Run (tools/deploy.sh)
+[group('release')]
+deploy image version error_rate="0" latency_ms="0":
+    tools/deploy.sh {{project}} {{region}} {{service}} {{image}} {{version}} {{error_rate}} {{latency_ms}}
+
+# Progressive canary 10/50/100 with automatic rollback (tools/canary.py)
+[group('release')]
+canary revision:
+    tools/canary.py --project {{project}} --region {{region}} --service {{service}} --revision {{revision}}
+
+# List revisions, or send 100% traffic to one (tools/rollback.sh)
+[group('release')]
+rollback revision="":
+    tools/rollback.sh {{project}} {{region}} {{service}} {{revision}}
+
+# Verify the cosign signature of an image (tools/verify-signature.sh)
+[group('release')]
+verify image:
+    tools/verify-signature.sh {{image}}
