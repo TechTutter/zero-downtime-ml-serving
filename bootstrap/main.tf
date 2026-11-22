@@ -29,6 +29,7 @@ locals {
       "roles/run.admin",
       "roles/artifactregistry.admin",
       "roles/iam.serviceAccountAdmin",
+      "roles/iam.serviceAccountUser", # actAs the runtime SA it creates; serviceAccountAdmin lacks it
       "roles/monitoring.editor",
     ]
     deployer = ["roles/run.developer", "roles/monitoring.viewer"]
