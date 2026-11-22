@@ -28,5 +28,5 @@ variable "github_repository" {
 variable "budget_amount" {
   description = "Monthly budget per project, in the billing account currency."
   type        = number
-  default     = 20
+  default     = 5
 }

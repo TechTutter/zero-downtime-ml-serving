@@ -155,6 +155,8 @@ resource "google_billing_budget" "env" {
 
   budget_filter {
     projects = ["projects/${google_project.env[each.key].number}"]
+    # Alert on gross cost: with trial credits included the net cost stays at zero and nothing fires.
+    credit_types_treatment = "EXCLUDE_ALL_CREDITS"
   }
 
   amount {
