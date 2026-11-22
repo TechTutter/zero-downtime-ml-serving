@@ -95,8 +95,9 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   workload_identity_pool_provider_id = "github"
   display_name                       = "GitHub OIDC"
   attribute_mapping = {
-    "google.subject"       = "assertion.sub"
-    "attribute.repository" = "assertion.repository"
+    "google.subject"        = "assertion.sub"
+    "attribute.repository"  = "assertion.repository"
+    "attribute.environment" = "assertion.environment"
   }
   # Tokens from any other repository are rejected before any IAM binding is evaluated.
   attribute_condition = "assertion.repository == '${var.github_repository}'"
@@ -144,7 +145,9 @@ resource "google_service_account_iam_member" "wif" {
   member = (
     each.value.sa == "tf-plan"
     ? "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github[each.value.env].name}/attribute.repository/${var.github_repository}"
-    : "principal://iam.googleapis.com/${google_iam_workload_identity_pool.github[each.value.env].name}/subject/repo:${var.github_repository}:environment:${each.value.env}"
+    # By environment claim, not sub: GitHub's immutable subjects embed owner/repo IDs in sub.
+    # attribute_condition already limits the pool to this repository.
+    : "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github[each.value.env].name}/attribute.environment/${each.value.env}"
   )
 }
 
