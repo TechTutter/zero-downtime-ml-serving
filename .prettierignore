@@ -1,0 +1,3 @@
+# Formatted by their own tools: ruff (Python), terraform fmt (HCL).
+app/uv.lock
+**/.terraform/

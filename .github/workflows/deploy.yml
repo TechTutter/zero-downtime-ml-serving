@@ -9,7 +9,12 @@ on:
       image: { type: string, required: true, description: "image@sha256 to deploy" }
       version: { type: string, required: true }
       environment: { type: string, default: dev }
-      load: { type: boolean, default: true, description: "run k6 against the service during the canary" }
+      load:
+        {
+          type: boolean,
+          default: true,
+          description: "run k6 against the service during the canary",
+        }
       fault_error_rate: { type: string, default: "0" }
       fault_latency_ms: { type: string, default: "0" }
   workflow_dispatch:
@@ -18,7 +23,8 @@ on:
       version: { type: string, required: true }
       environment: { type: choice, options: [dev], default: dev }
       load: { type: boolean, default: true }
-      fault_error_rate: { type: string, default: "0", description: "0..1, simulates a degraded model" }
+      fault_error_rate:
+        { type: string, default: "0", description: "0..1, simulates a degraded model" }
       fault_latency_ms: { type: string, default: "0", description: "extra latency per request" }
 
 permissions:

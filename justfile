@@ -36,6 +36,13 @@ drain-test:
 load url="http://localhost:8080" rate="20" duration="1m":
     tools/load.sh {{url}} {{rate}} {{duration}}
 
+# Format everything: ruff (Python), terraform fmt (HCL), prettier (Markdown, YAML, JSON, JS)
+[group('app')]
+fmt:
+    cd app && uv run ruff format . ../tools
+    terraform fmt -recursive
+    npx --yes prettier@3.9.10 --write .
+
 # Lint and test the model server and the canary logic (ruff + pytest)
 [group('app')]
 test:

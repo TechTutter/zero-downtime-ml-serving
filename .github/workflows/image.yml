@@ -4,7 +4,8 @@ name: image
 # Tag vX.Y.Z: the same, then push to GHCR by digest, sign, and hand the digest to deploy.
 on:
   pull_request:
-    paths: [app/**, tools/**, tests/load/**, .github/workflows/image.yml, .github/workflows/deploy.yml]
+    paths:
+      [app/**, tools/**, tests/load/**, .github/workflows/image.yml, .github/workflows/deploy.yml]
   push:
     tags: ["v*.*.*"]
 

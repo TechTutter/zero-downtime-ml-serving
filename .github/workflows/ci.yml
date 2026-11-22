@@ -35,6 +35,13 @@ jobs:
         working-directory: app
         run: uv run pytest -q ../tools/tests
 
+  prettier:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: prettier (Markdown, YAML, JSON, JS)
+        run: npx --yes prettier@3.9.10 --check .
+
   shell:
     runs-on: ubuntu-24.04
     steps:

@@ -2,20 +2,20 @@
 
 ## SLIs
 
-| SLI | Definition | Source |
-|---|---|---|
-| Availability | Requests that do not return 5xx, divided by all requests | `run.googleapis.com/request_count` by `response_code_class` |
-| Latency | p99 of request latency, measured at the Cloud Run front end | `run.googleapis.com/request_latencies` |
+| SLI          | Definition                                                  | Source                                                      |
+| ------------ | ----------------------------------------------------------- | ----------------------------------------------------------- |
+| Availability | Requests that do not return 5xx, divided by all requests    | `run.googleapis.com/request_count` by `response_code_class` |
+| Latency      | p99 of request latency, measured at the Cloud Run front end | `run.googleapis.com/request_latencies`                      |
 
 Both are measured by the platform, outside the container, so a crashed or frozen instance still
 counts against the SLI.
 
 ## Objectives
 
-| SLO | Target | Window |
-|---|---|---|
-| Availability | 99.5% | rolling 28 days (`google_monitoring_slo.availability`) |
-| Latency | p99 below 500 ms | alert after 5 minutes above |
+| SLO          | Target           | Window                                                 |
+| ------------ | ---------------- | ------------------------------------------------------ |
+| Availability | 99.5%            | rolling 28 days (`google_monitoring_slo.availability`) |
+| Latency      | p99 below 500 ms | alert after 5 minutes above                            |
 
 ## Error budget
 

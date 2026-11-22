@@ -30,18 +30,18 @@ Needs Docker and [just](https://github.com/casey/just); `just` lists every task.
 
 ## What runs where
 
-| Capability | Local | Tested in CI | Live on dev | Plan-only |
-|---|---|---|---|---|
-| Model server, probes, `/version`, `/metrics` | `just up` | pytest (`ci.yml`) | yes | |
-| No request lost on SIGTERM | `just drain-test` | every image (`image.yml`) | yes | |
-| Build once, Trivy scan | `just up` | `image.yml` | | |
-| Keyless signing, copy by digest with signature | | two local registries (`image.yml`) | GHCR → AR dev | AR dev → AR prod |
-| Canary decision logic | `just test` | pytest on `tools/canary.py` | yes | |
-| Canary under k6 load, zero errors | | | `deploy.yml` on release tags | |
-| Degraded release rolled back automatically | | | `deploy.yml` with fault inputs | |
-| Terraform modules | `just tf-check` | fmt, validate, `terraform test`, tflint, checkov | applied | prod |
-| Workload Identity Federation (no keys) | | | yes | prod |
-| SLO, alerts, dashboard | | `terraform test` | yes | prod |
+| Capability                                     | Local             | Tested in CI                                     | Live on dev                    | Plan-only        |
+| ---------------------------------------------- | ----------------- | ------------------------------------------------ | ------------------------------ | ---------------- |
+| Model server, probes, `/version`, `/metrics`   | `just up`         | pytest (`ci.yml`)                                | yes                            |                  |
+| No request lost on SIGTERM                     | `just drain-test` | every image (`image.yml`)                        | yes                            |                  |
+| Build once, Trivy scan                         | `just up`         | `image.yml`                                      |                                |                  |
+| Keyless signing, copy by digest with signature |                   | two local registries (`image.yml`)               | GHCR → AR dev                  | AR dev → AR prod |
+| Canary decision logic                          | `just test`       | pytest on `tools/canary.py`                      | yes                            |                  |
+| Canary under k6 load, zero errors              |                   |                                                  | `deploy.yml` on release tags   |                  |
+| Degraded release rolled back automatically     |                   |                                                  | `deploy.yml` with fault inputs |                  |
+| Terraform modules                              | `just tf-check`   | fmt, validate, `terraform test`, tflint, checkov | applied                        | prod             |
+| Workload Identity Federation (no keys)         |                   |                                                  | yes                            | prod             |
+| SLO, alerts, dashboard                         |                   | `terraform test`                                 | yes                            | prod             |
 
 Cloud Run cannot run locally, so the canary itself is proven on the dev project; everything
 around it (image, signing, promotion, decision logic, Terraform) is tested on every pull request.
@@ -79,10 +79,10 @@ tools/                  scripts behind the justfile (canary.py, deploy, copy, ve
 docs/                   ADRs, runbook, SLOs
 ```
 
-| Environment | Access | Scaling | Protection | Status |
-|---|---|---|---|---|
-| dev | public | 0 to 3 instances | none, disposable | live during demos |
-| prod | IAM invokers only | 1 to 10 instances | deletion protection, required reviewer | plan-only |
+| Environment | Access            | Scaling           | Protection                             | Status            |
+| ----------- | ----------------- | ----------------- | -------------------------------------- | ----------------- |
+| dev         | public            | 0 to 3 instances  | none, disposable                       | live during demos |
+| prod        | IAM invokers only | 1 to 10 instances | deletion protection, required reviewer | plan-only         |
 
 ## Deploying to GCP
 
