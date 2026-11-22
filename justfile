@@ -71,7 +71,7 @@ plan env="dev":
 deploy image version error_rate="0" latency_ms="0":
     tools/deploy.sh {{project}} {{region}} {{service}} {{image}} {{version}} {{error_rate}} {{latency_ms}}
 
-# Progressive canary 10/50/100 with automatic rollback (tools/canary.py)
+# Progressive canary 20% then 100% with automatic rollback (tools/canary.py)
 [group('release')]
 canary revision:
     tools/canary.py --project {{project}} --region {{region}} --service {{service}} --revision {{revision}}

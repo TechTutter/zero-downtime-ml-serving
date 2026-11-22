@@ -22,8 +22,8 @@ counts against the SLI.
 0.5% of requests over 28 days. At a steady 20 requests per second that is
 20 x 86,400 x 28 x 0.005, about 242,000 failed requests.
 
-A degraded canary at 10% weight that fails half of its requests burns about 5% of traffic for
-one canary step (about 5 minutes): roughly 3,000 requests, a bit over 1% of the budget. That
+A degraded canary at 20% weight that fails half of its requests burns about 10% of traffic for
+one canary step (about 5 minutes): roughly 6,000 requests, about 2.5% of the budget. That
 is the cost of a bad release being caught, and the reason the first step is small.
 
 ## How the SLOs are used

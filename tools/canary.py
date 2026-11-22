@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Progressive canary on Cloud Run with automatic rollback.
 
-Shifts traffic to a new revision step by step (default 10% -> 50% -> 100%). After each step it
+Shifts traffic to a new revision step by step (default 20% -> 100%). After each step it
 waits, then reads the new revision's error rate and p99 latency from Cloud Monitoring. Any bad or
 inconclusive step sends 100% of traffic back to the previous revision and exits 1.
 
@@ -153,7 +153,7 @@ def main() -> int:
     ap.add_argument("--region", required=True)
     ap.add_argument("--service", required=True)
     ap.add_argument("--revision", required=True, help="new revision, deployed with --no-traffic")
-    ap.add_argument("--steps", default="10,50,100", help="traffic percentages, ending at 100")
+    ap.add_argument("--steps", default="20,100", help="traffic percentages, ending at 100")
     ap.add_argument(
         "--step-seconds",
         type=int,

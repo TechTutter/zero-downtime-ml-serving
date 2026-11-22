@@ -34,7 +34,7 @@ why the release was bad before tagging a fixed version (for example v0.2.1).
 
 ## Canary stuck or interrupted
 
-A cancelled `deploy` workflow can leave traffic split (for example 10% new / 90% old).
+A cancelled `deploy` workflow can leave traffic split (for example 20% new / 80% old).
 
 1. `gcloud run services describe model-server --region $GCP_REGION --format 'yaml(status.traffic)'`
 2. Move everything to the revision you trust: `just rollback <revision>`.

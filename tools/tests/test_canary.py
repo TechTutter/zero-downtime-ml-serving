@@ -37,6 +37,7 @@ def test_parse_steps_rejects_bad_plans(raw):
 
 
 def test_parse_steps():
+    assert canary.parse_steps("20,100") == [20, 100]
     assert canary.parse_steps("10,50,100") == [10, 50, 100]
 
 

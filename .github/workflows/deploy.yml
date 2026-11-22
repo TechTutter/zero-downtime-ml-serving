@@ -104,14 +104,14 @@ jobs:
           echo "URL=$url" >> "$GITHUB_ENV"
 
       # A healthy release must not lose a single request. A degraded one (faults injected) must be
-      # rolled back, with errors limited to roughly the 10% canary weight.
+      # rolled back, with errors limited to roughly the 20% canary weight.
       - name: Canary under load
         run: |
           degraded=false
           if [[ $FAULT_ERROR_RATE != 0 || $FAULT_LATENCY_MS != 0 ]]; then degraded=true; fi
           k6_pid=
           if [[ ${{ inputs.load }} == true ]]; then
-            MAX_ERROR_RATE=$([[ $degraded == true ]] && echo 0.1 || echo 0) tools/load.sh "$URL" 20 17m &
+            MAX_ERROR_RATE=$([[ $degraded == true ]] && echo 0.15 || echo 0) tools/load.sh "$URL" 20 12m &
             k6_pid=$!
           fi
 
