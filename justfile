@@ -36,10 +36,10 @@ drain-test:
 load url="http://localhost:8080" rate="20" duration="1m":
     tools/load.sh {{url}} {{rate}} {{duration}}
 
-# Lint and test the model server (ruff + pytest)
+# Lint and test the model server and the canary logic (ruff + pytest)
 [group('app')]
 test:
-    cd app && uv run ruff check . && uv run ruff format --check . && uv run pytest -q
+    cd app && uv run ruff check . ../tools && uv run ruff format --check . ../tools && uv run pytest -q && uv run pytest -q ../tools/tests
 
 # terraform fmt, validate and module tests (tools/tf-check.sh)
 [group('infra')]
