@@ -99,7 +99,7 @@ jobs:
       - name: Verify signature and copy by digest
         run: |
           tools/verify-signature.sh "$IMAGE"
-          ref=$(tools/copy-signed.sh "$IMAGE" "$GCP_REGION-docker.pkg.dev/$GCP_PROJECT/model-server" "$VERSION")
+          ref=$(tools/copy-signed.sh "$IMAGE" "$GCP_REGION-docker.pkg.dev/$GCP_PROJECT/model-server/$SERVICE" "$VERSION")
           echo "TARGET=$ref" >> "$GITHUB_ENV"
 
       - name: Deploy revision (no traffic)

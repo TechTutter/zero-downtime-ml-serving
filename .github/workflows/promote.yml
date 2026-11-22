@@ -46,7 +46,7 @@ jobs:
         if: steps.check.outputs.enabled == 'true'
         run: |
           gcloud auth configure-docker "$GCP_REGION-docker.pkg.dev" --quiet
-          repo="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT/model-server"
+          repo="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT/model-server/model-server" # host/project/repository/image
           echo "image=$repo@$(crane digest "$repo:${{ inputs.version }}")" >> "$GITHUB_OUTPUT"
 
   deploy-prod:
