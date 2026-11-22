@@ -10,20 +10,21 @@ resource "google_artifact_registry_repository" "this" {
     immutable_tags = true
   }
 
+  # Delete everything except the most recent versions (KEEP wins over DELETE).
+  # Cleanup runs about once a day, so the repository can briefly exceed keep_count.
+  cleanup_policies {
+    id     = "delete-all"
+    action = "DELETE"
+    condition {
+      tag_state = "ANY"
+    }
+  }
+
   cleanup_policies {
     id     = "keep-recent"
     action = "KEEP"
     most_recent_versions {
       keep_count = var.keep_count
-    }
-  }
-
-  cleanup_policies {
-    id     = "delete-old-untagged"
-    action = "DELETE"
-    condition {
-      tag_state  = "UNTAGGED"
-      older_than = "604800s" # 7 days
     }
   }
 }

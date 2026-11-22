@@ -48,9 +48,9 @@ variable "min_instances" {
 }
 
 variable "max_instances" {
-  description = "Upper bound on instances, also a cost guard."
+  description = "Upper bound on instances per revision, also the cost guard."
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "concurrency" {

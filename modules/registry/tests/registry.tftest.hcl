@@ -28,6 +28,15 @@ run "writers_and_readers_get_separate_roles" {
   }
 }
 
+run "keeps_current_and_previous_release" {
+  command = plan
+
+  assert {
+    condition     = one([for p in google_artifact_registry_repository.this.cleanup_policies : p.most_recent_versions[0].keep_count if p.action == "KEEP"]) == 4
+    error_message = "Keep image + signature for the current and the rollback release."
+  }
+}
+
 run "url_format" {
   command = plan
 

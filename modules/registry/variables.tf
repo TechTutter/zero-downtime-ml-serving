@@ -27,7 +27,11 @@ variable "readers" {
 }
 
 variable "keep_count" {
-  description = "Most recent image versions always kept by the cleanup policy."
+  description = <<-EOT
+    Most recent versions kept. Each release is two versions (image + cosign signature),
+    so 4 keeps the current release and the previous one, the rollback target. Deliberately
+    minimal to stay inside the 0.5 GB Artifact Registry free tier.
+  EOT
   type        = number
-  default     = 10
+  default     = 4
 }

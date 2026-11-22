@@ -81,7 +81,7 @@ docs/                   ADRs, runbook, SLOs
 
 | Environment | Access            | Scaling           | Protection                             | Status            |
 | ----------- | ----------------- | ----------------- | -------------------------------------- | ----------------- |
-| dev         | public            | 0 to 3 instances  | none, disposable                       | live during demos |
+| dev         | public            | 0 to 2 instances  | none, disposable                       | live during demos |
 | prod        | IAM invokers only | 1 to 10 instances | deletion protection, required reviewer | plan-only         |
 
 ## Deploying to GCP
