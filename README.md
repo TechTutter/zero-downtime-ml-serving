@@ -89,7 +89,13 @@ docs/                   ADRs, runbook, SLOs
 Requirements: a GCP billing account (the free trial works), an existing project to use as
 quota project, `gcloud`, Terraform >= 1.9, `gh`, `jq`.
 
-1. Authenticate: `gcloud auth application-default login`.
+1. Authenticate: `gcloud auth application-default login`. Bootstrap bills every API call to the
+   quota project, so enable the APIs it calls there (free):
+   ```bash
+   gcloud services enable cloudresourcemanager.googleapis.com cloudbilling.googleapis.com \
+     billingbudgets.googleapis.com serviceusage.googleapis.com iam.googleapis.com \
+     storage.googleapis.com --project <quota-project>
+   ```
 2. Bootstrap (local state, run once):
    ```bash
    cp bootstrap/terraform.tfvars.example bootstrap/terraform.tfvars   # fill in billing account
