@@ -43,6 +43,9 @@ Needs Docker and [just](https://github.com/casey/just); `just` lists every task.
 | Workload Identity Federation (no keys)         |                   |                                                  | yes                            | prod             |
 | SLO, alerts, dashboard                         |                   | `terraform test`                                 | yes                            | prod             |
 
+"Live on dev" was run end to end on a real project and then destroyed: results, run links and
+dashboard screenshots are in [docs/evidence](docs/evidence/README.md).
+
 Cloud Run cannot run locally, so the canary itself is proven on the dev project; everything
 around it (image, signing, promotion, decision logic, Terraform) is tested on every pull request.
 
