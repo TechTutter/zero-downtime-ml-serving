@@ -12,6 +12,7 @@ app/model/*.joblib
 *.tfstate
 *.tfstate.*
 *.tfplan
+tf.plan
 crash.log
 override.tf
 override.tf.json
