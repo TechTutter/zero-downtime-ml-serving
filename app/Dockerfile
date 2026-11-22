@@ -21,7 +21,11 @@ ENV PATH=/app/.venv/bin:$PATH \
     MODEL_DIR=/app/model \
     GIT_SHA=$GIT_SHA \
     APP_VERSION=$APP_VERSION
-RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app
+# Security patches newer than the pinned base, and no pip at runtime (its vendored libs carry CVEs).
+RUN apt-get update && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip uninstall -y pip \
+    && useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app
 WORKDIR /app
 COPY --from=build /app/.venv .venv
 COPY --from=build /app/model model
