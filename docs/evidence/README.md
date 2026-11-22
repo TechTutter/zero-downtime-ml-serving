@@ -19,6 +19,17 @@ Traffic moves from one revision to the next while the total stays flat at 20 req
 second. The 5xx panel is empty because Cloud Monitoring creates no series until the first
 5xx.
 
+Canary log of v0.1.0 (`tools/canary.py` in the deploy job):
+
+```text
+canary model-server-v0-1-0-67624, rollback target model-server-00001-tjf
+[ 20%] traffic model-server-v0-1-0-67624=20,model-server-00001-tjf=80, observing for 300s
+[ 20%] healthy: 912 requests, error rate 0.00%, p99 14ms
+[100%] traffic model-server-v0-1-0-67624=100, observing for 300s
+[100%] healthy: 5142 requests, error rate 0.00%, p99 13ms
+PROMOTED: 100% traffic on model-server-v0-1-0-67624
+```
+
 ![v0.1.0 rollout](v0.1.0-rollout.webp)
 
 ![v0.2.0 rollout](v0.2.0-rollout.webp)
@@ -29,6 +40,13 @@ During the 20% step the new revision returns 5xx on about half of its requests. 
 measures 47.86% against a 5% limit, sends 100% of traffic back to v0.2.0 and the job passes
 because the rollback happened. Users saw 4.09% failed requests in total, below the 20% canary
 weight: the failures stayed inside the canary slice and stopped at the rollback.
+
+```text
+canary model-server-v0-3-0-69737, rollback target model-server-v0-2-0-68814
+[ 20%] traffic model-server-v0-3-0-69737=20,model-server-v0-2-0-68814=80, observing for 300s
+[ 20%] error rate 47.86% > 5.00%
+ROLLED BACK: 100% traffic on model-server-v0-2-0-68814
+```
 
 ![v0.3.0 during the 20% step](v0.3.0-canary-20.webp)
 
