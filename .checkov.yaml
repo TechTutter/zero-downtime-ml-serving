@@ -3,4 +3,18 @@ framework: [terraform, dockerfile, github_actions]
 quiet: true
 compact: true
 # Each skip is a deliberate trade-off, explained in the linked resource or ADR.
-skip-check: []
+skip-check:
+  # No default network exists: the compute API is never enabled. auto_create_network=false would enable it.
+  - CKV_GCP_27
+  # State bucket access logs need a second bucket; versioning, UBLA and PAP cover a demo state bucket.
+  - CKV_GCP_62
+  # False positive: attribute_condition pins the exact repository through var.github_repository.
+  - CKV_GCP_125
+  # Google-managed encryption; CMEK/CSEK means paid KMS keys, out of scope for the free-tier demo.
+  - CKV_GCP_84
+  # Admin Activity audit logs are always on; Data Access logs are billed and not needed for the demo.
+  - CKV2_GCP_5
+  # Cloud Run ignores Docker HEALTHCHECK; startup and liveness probes are set on the service.
+  - CKV_DOCKER_2
+  # deploy and promote build nothing: dispatch inputs only pick an already signed digest.
+  - CKV_GHA_7
