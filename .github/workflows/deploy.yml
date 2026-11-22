@@ -125,7 +125,11 @@ jobs:
           tools/canary.py --project "$GCP_PROJECT" --region "$GCP_REGION" --service "$SERVICE" --revision "$REVISION"
           canary_rc=$?
           k6_rc=0
-          if [[ -n $k6_pid ]]; then wait "$k6_pid"; k6_rc=$?; fi
+          if [[ -n $k6_pid ]]; then
+            # Load keeps running after promotion or rollback: the tail shows the settled revision serving clean.
+            echo "canary done (exit $canary_rc), waiting for k6 to finish its 12m run"
+            wait "$k6_pid"; k6_rc=$?
+          fi
           set -e
 
           {
